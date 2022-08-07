@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import "./App.css";
+import defaultImage from './image-placeholder.svg'
 
 function App() {
   const [property, setProperty] = useState({
@@ -269,7 +270,7 @@ function App() {
         <div class="preview-img">
           <img
             style={{ transform: transform, filter: filter }}
-            src="image-placeholder.svg"
+            src={defaultImage}
             alt="preview-img"
           />
         </div>
