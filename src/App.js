@@ -177,6 +177,7 @@ function App() {
     } else {
       setFilterValue(values.grayscale);
     }
+    console.log(filterValue)
   };
 
   const updateFilterValue = (event) => {
@@ -233,7 +234,7 @@ function App() {
             <div class="slider">
               <div class="filter-info">
                 <p class="name">{filterOption}</p>
-                <p class="value">rdg{filterValue}%gh</p>
+                <p class="value">{filterValue}%</p>
               </div>
               <input
                 onChange={(event) => updateFilterValue(event)}
