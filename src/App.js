@@ -14,7 +14,18 @@ function App() {
     chooseImgBtn: "",
     saveImgBtn: "",
   });
+  const [values, setValues] = useState({
+    brightness: "100",
+    saturation: "100",
+    inversion: "0",
+    grayscale: "0",
+    rotate: 0,
+    flipHorizontal: 1,
+    flipVertical: 1,
+  });
+  const [filterValue, setFilterValue] = useState(values.brightness);
   const [filterOption, setFilterOption] = useState("brightness");
+
   useEffect(() => {
     setProperty((prevState) => ({
       ...prevState,
@@ -56,15 +67,7 @@ function App() {
       ...prevState,
       saveImgBtn: document.querySelector(".save-img"),
     }));
-  }, []);
-
-  let brightness = "100",
-    saturation = "100",
-    inversion = "0",
-    grayscale = "0";
-  let rotate = 0,
-    flipHorizontal = 1,
-    flipVertical = 1;
+  }, [values]);
 
   const loadImage = () => {
     property.fileInput.click();
@@ -78,37 +81,40 @@ function App() {
     updateFilter();
   };
 
-  const applyFilter = () => {
-    property.previewImg.style.transform = `rotate(${rotate}deg) scale(${flipHorizontal}, ${flipVertical})`;
-    property.previewImg.style.filter = `brightness(${brightness}%) saturate(${saturation}%) invert(${inversion}%) grayscale(${grayscale}%)`;
-  };
+  // const applyFilter = () => {
+  console.log(property);
+  const transform = `rotate(${values.rotate}deg) scale(${values.flipHorizontal}, ${values.flipVertical})`;
+  const filter = `brightness(${values.brightness}%) saturate(${values.saturation}%) invert(${values.inversion}%) grayscale(${values.grayscale}%)`;
+  // };
 
   const updateFilter = () => {
     property.filterValue.innerText = `${property.filterSlider.value}%`;
     const selectedFilter = document.querySelector(".filter .active");
 
     if (selectedFilter.id === "brightness") {
-      brightness = property.filterSlider.value;
+      setValues({ ...values, brightness: property.filterSlider.value });
     } else if (selectedFilter.id === "saturation") {
-      saturation = property.filterSlider.value;
+      setValues({ ...values, saturation: property.filterSlider.value });
     } else if (selectedFilter.id === "inversion") {
-      inversion = property.filterSlider.value;
+      setValues({ ...values, inversion: property.filterSlider.value });
     } else {
-      grayscale = property.filterSlider.value;
+      setValues({ ...values, grayscale: property.filterSlider.value });
     }
-    applyFilter();
+    // applyFilter();
   };
 
   const resetFilter = () => {
-    brightness = "100";
-    saturation = "100";
-    inversion = "0";
-    grayscale = "0";
-    rotate = 0;
-    flipHorizontal = 1;
-    flipVertical = 1;
+    setValues({
+      brightness: "100",
+      saturation: "100",
+      inversion: "0",
+      grayscale: "0",
+      rotate: 0,
+      flipHorizontal: 1,
+      flipVertical: 1,
+    });
     property.filterOptions[0].click();
-    applyFilter();
+    // applyFilter();
   };
 
   const saveImage = () => {
@@ -117,12 +123,12 @@ function App() {
     canvas.width = property.previewImg.naturalWidth;
     canvas.height = property.previewImg.naturalHeight;
 
-    ctx.filter = `brightness(${brightness}%) saturate(${saturation}%) invert(${inversion}%) grayscale(${grayscale}%)`;
+    ctx.filter = `brightness(${values.brightness}%) saturate(${values.saturation}%) invert(${values.inversion}%) grayscale(${values.grayscale}%)`;
     ctx.translate(canvas.width / 2, canvas.height / 2);
-    if (rotate !== 0) {
-      ctx.rotate((rotate * Math.PI) / 180);
+    if (values.rotate !== 0) {
+      ctx.rotate((values.rotate * Math.PI) / 180);
     }
-    ctx.scale(flipHorizontal, flipVertical);
+    ctx.scale(values.flipHorizontal, values.flipVertical);
     ctx.drawImage(
       property.previewImg,
       -canvas.width / 2,
@@ -144,35 +150,46 @@ function App() {
 
   const rotateAndFlip = (option) => {
     if (option === "left") {
-      rotate -= 90;
+      setValues((values) => ({ ...values, rotate: values.rotate - 90 }));
     } else if (option === "right") {
-      rotate += 90;
+      setValues({ ...values, rotate: values.rotate + 90 });
     } else if (option === "horizontal") {
-      flipHorizontal = flipHorizontal === 1 ? -1 : 1;
+      setValues({
+        ...values,
+        flipHorizontal: values.flipHorizontal === 1 ? -1 : 1,
+      });
     } else {
-      flipVertical = flipVertical === 1 ? -1 : 1;
+      setValues({
+        ...values,
+        flipVertical: values.flipVertical === 1 ? -1 : 1,
+      });
     }
-    applyFilter();
   };
 
   const selectFilterOption = (filterOption) => {
     setFilterOption(filterOption);
     if (filterOption === "brightness") {
-      property.filterSlider.max = "200";
-      property.filterSlider.value = brightness;
-      property.filterValue.innerText = `${brightness}%`;
+      setFilterValue(values.brightness);
     } else if (filterOption === "saturation") {
-      property.filterSlider.max = "200";
-      property.filterSlider.value = saturation;
-      property.filterValue.innerText = `${saturation}%`;
+      setFilterValue(values.saturation);
     } else if (filterOption === "inversion") {
-      property.filterSlider.max = "100";
-      property.filterSlider.value = inversion;
-      property.filterValue.innerText = `${inversion}%`;
+      setFilterValue(values.inversion);
     } else {
-      property.filterSlider.max = "100";
-      property.filterSlider.value = grayscale;
-      property.filterValue.innerText = `${grayscale}%`;
+      setFilterValue(values.grayscale);
+    }
+  };
+
+  const updateFilterValue = (event) => {
+    console.log(event.target.value);
+    setFilterValue(event.target.value);
+    if (filterOption === "brightness") {
+      setValues((values) => ({ ...values, brightness: event.target.value }));
+    } else if (filterOption === "saturation") {
+      setValues((values) => ({ ...values, saturation: event.target.value }));
+    } else if (filterOption === "inversion") {
+      setValues((values) => ({ ...values, inversion: event.target.value }));
+    } else {
+      setValues((values) => ({ ...values, grayscale: event.target.value }));
     }
   };
 
@@ -216,9 +233,15 @@ function App() {
             <div class="slider">
               <div class="filter-info">
                 <p class="name">{filterOption}</p>
-                <p class="value">100%</p>
+                <p class="value">rdg{filterValue}%gh</p>
               </div>
-              <input type="range" value="100" min="0" max="200" />
+              <input
+                onChange={(event) => updateFilterValue(event)}
+                type="range"
+                value={filterValue}
+                min="0"
+                max="200"
+              />
             </div>
           </div>
           <div class="rotate">
@@ -243,7 +266,11 @@ function App() {
           </div>
         </div>
         <div class="preview-img">
-          <img src="image-placeholder.svg" alt="preview-img" />
+          <img
+            style={{ transform: transform, filter: filter }}
+            src="image-placeholder.svg"
+            alt="preview-img"
+          />
         </div>
       </div>
       <div class="controls">
