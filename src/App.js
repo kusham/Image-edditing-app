@@ -1,20 +1,8 @@
-import { useEffect, useState } from "react";
+import { createRef, useState } from "react";
 import "./App.css";
-import defaultImage from './image-placeholder.svg'
-
+import defaultImage from "./image-placeholder.svg";
+import NavBar from './NavBar/NavBar'
 function App() {
-  const [property, setProperty] = useState({
-    fileInput: "",
-    filterOptions: "",
-    filterName: "",
-    filterValue: "",
-    filterSlider: "",
-    rotateOptions: "",
-    previewImg: "",
-    resetFilterBtn: "",
-    chooseImgBtn: "",
-    saveImgBtn: "",
-  });
   const [values, setValues] = useState({
     brightness: "100",
     saturation: "100",
@@ -24,85 +12,24 @@ function App() {
     flipHorizontal: 1,
     flipVertical: 1,
   });
-  const [filterValue, setFilterValue] = useState(values.brightness);
+  const [image, setImage] = useState("");
   const [filterOption, setFilterOption] = useState("brightness");
+  const filterValue = values[filterOption];
+  const myRef = createRef();
 
-  useEffect(() => {
-    setProperty((prevState) => ({
-      ...prevState,
-      fileInput: document.querySelector(".file-input"),
-    }));
-    setProperty((prevState) => ({
-      ...prevState,
-      filterOptions: document.querySelectorAll(".filter button"),
-    }));
-    setProperty((prevState) => ({
-      ...prevState,
-      filterName: document.querySelector(".filter-info .name"),
-    }));
-    setProperty((prevState) => ({
-      ...prevState,
-      filterValue: document.querySelector(".filter-info .value"),
-    }));
-    setProperty((prevState) => ({
-      ...prevState,
-      filterSlider: document.querySelector(".slider input"),
-    }));
-    setProperty((prevState) => ({
-      ...prevState,
-      rotateOptions: document.querySelectorAll(".rotate button"),
-    }));
-    setProperty((prevState) => ({
-      ...prevState,
-      previewImg: document.querySelector(".preview-img img"),
-    }));
-    setProperty((prevState) => ({
-      ...prevState,
-      resetFilterBtn: document.querySelector(".reset-filter"),
-    }));
-    setProperty((prevState) => ({
-      ...prevState,
-      chooseImgBtn: document.querySelector(".choose-img"),
-    }));
-    setProperty((prevState) => ({
-      ...prevState,
-      saveImgBtn: document.querySelector(".save-img"),
-    }));
-  }, [values]);
-
-  const loadImage = () => {
-    property.fileInput.click();
-    let file = property.fileInput.files[0];
-    if (!file) return;
-    property.previewImg.src = URL.createObjectURL(file);
-    property.previewImg.addEventListener("load", () => {
-      property.resetFilterBtn.click();
-      document.querySelector(".container").classList.remove("disable");
-    });
-    updateFilter();
+  const inputClick = () => {
+    myRef.current.click();
   };
 
-  // const applyFilter = () => {
-  console.log(property);
+  const loadImage = (e) => {
+    console.log(e.target.files[0]);
+    if (e.target.files && e.target.files[0]) {
+      setImage(URL.createObjectURL(e.target.files[0]));
+    }
+  };
+
   const transform = `rotate(${values.rotate}deg) scale(${values.flipHorizontal}, ${values.flipVertical})`;
   const filter = `brightness(${values.brightness}%) saturate(${values.saturation}%) invert(${values.inversion}%) grayscale(${values.grayscale}%)`;
-  // };
-
-  const updateFilter = () => {
-    property.filterValue.innerText = `${property.filterSlider.value}%`;
-    const selectedFilter = document.querySelector(".filter .active");
-
-    if (selectedFilter.id === "brightness") {
-      setValues({ ...values, brightness: property.filterSlider.value });
-    } else if (selectedFilter.id === "saturation") {
-      setValues({ ...values, saturation: property.filterSlider.value });
-    } else if (selectedFilter.id === "inversion") {
-      setValues({ ...values, inversion: property.filterSlider.value });
-    } else {
-      setValues({ ...values, grayscale: property.filterSlider.value });
-    }
-    // applyFilter();
-  };
 
   const resetFilter = () => {
     setValues({
@@ -114,15 +41,14 @@ function App() {
       flipHorizontal: 1,
       flipVertical: 1,
     });
-    property.filterOptions[0].click();
-    // applyFilter();
   };
 
   const saveImage = () => {
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
-    canvas.width = property.previewImg.naturalWidth;
-    canvas.height = property.previewImg.naturalHeight;
+    const downloadImage = document.querySelector(".preview-img img");
+    canvas.width = downloadImage.naturalWidth;
+    canvas.height = downloadImage.naturalHeight;
 
     ctx.filter = `brightness(${values.brightness}%) saturate(${values.saturation}%) invert(${values.inversion}%) grayscale(${values.grayscale}%)`;
     ctx.translate(canvas.width / 2, canvas.height / 2);
@@ -131,7 +57,7 @@ function App() {
     }
     ctx.scale(values.flipHorizontal, values.flipVertical);
     ctx.drawImage(
-      property.previewImg,
+      downloadImage,
       -canvas.width / 2,
       -canvas.height / 2,
       canvas.width,
@@ -142,11 +68,6 @@ function App() {
     link.download = "image.jpg";
     link.href = canvas.toDataURL();
     link.click();
-  };
-
-  const handleChoose = () => {
-    property.fileInput.click();
-    setFilterOption("");
   };
 
   const rotateAndFlip = (option) => {
@@ -169,21 +90,10 @@ function App() {
 
   const selectFilterOption = (filterOption) => {
     setFilterOption(filterOption);
-    if (filterOption === "brightness") {
-      setFilterValue(values.brightness);
-    } else if (filterOption === "saturation") {
-      setFilterValue(values.saturation);
-    } else if (filterOption === "inversion") {
-      setFilterValue(values.inversion);
-    } else {
-      setFilterValue(values.grayscale);
-    }
-    console.log(filterValue)
   };
 
   const updateFilterValue = (event) => {
     console.log(event.target.value);
-    setFilterValue(event.target.value);
     if (filterOption === "brightness") {
       setValues((values) => ({ ...values, brightness: event.target.value }));
     } else if (filterOption === "saturation") {
@@ -196,106 +106,109 @@ function App() {
   };
 
   return (
-    <div class="container disable">
-      <h2>Easy Image Editor</h2>
-      <div class="wrapper">
-        <div class="editor-panel">
-          <div class="filter">
-            <label class="title">Filters</label>
-            <div class="options">
-              <button
-                onClick={() => selectFilterOption("brightness")}
-                id="brightness"
-                class={filterOption === "brightness" && "active"}
-              >
-                Brightness
-              </button>
-              <button
-                onClick={() => selectFilterOption("saturation")}
-                id="saturation"
-                class={filterOption === "saturation" && "active"}
-              >
-                Saturation
-              </button>
-              <button
-                onClick={() => selectFilterOption("inversion")}
-                id="inversion"
-                class={filterOption === "inversion" && "active"}
-              >
-                Inversion
-              </button>
-              <button
-                onClick={() => selectFilterOption("grayscale")}
-                id="grayscale"
-                class={filterOption === "grayscale" && "active"}
-              >
-                Grayscale
-              </button>
-            </div>
-            <div class="slider">
-              <div class="filter-info">
-                <p class="name">{filterOption}</p>
-                <p class="value">{filterValue}%</p>
+    <>
+    <NavBar />
+      <div className="container">
+        <div className="wrapper">
+          <div className="editor-panel">
+            <div className="filter">
+              <label className="title">Filters</label>
+              <div className="options">
+                <button
+                  onClick={() => selectFilterOption("brightness")}
+                  id="brightness"
+                  className={filterOption === "brightness" && "active"}
+                >
+                  Brightness
+                </button>
+                <button
+                  onClick={() => selectFilterOption("saturation")}
+                  id="saturation"
+                  className={filterOption === "saturation" && "active"}
+                >
+                  Saturation
+                </button>
+                <button
+                  onClick={() => selectFilterOption("inversion")}
+                  id="inversion"
+                  className={filterOption === "inversion" && "active"}
+                >
+                  Inversion
+                </button>
+                <button
+                  onClick={() => selectFilterOption("grayscale")}
+                  id="grayscale"
+                  className={filterOption === "grayscale" && "active"}
+                >
+                  Grayscale
+                </button>
               </div>
-              <input
-                onChange={(event) => updateFilterValue(event)}
-                type="range"
-                value={filterValue}
-                min="0"
-                max="200"
-              />
+              <div className="slider">
+                <div className="filter-info">
+                  <p className="name">{filterOption}</p>
+                  <p className="value">{filterValue}%</p>
+                </div>
+                <input
+                  onChange={(event) => updateFilterValue(event)}
+                  type="range"
+                  value={filterValue}
+                  min="0"
+                  max="200"
+                />
+              </div>
+            </div>
+            <div className="rotate">
+              <label className="title">Rotate & Flip</label>
+              <div className="options">
+                <button onClick={() => rotateAndFlip("left")} id="left">
+                  <i className="fa-solid fa-rotate-left"></i>
+                </button>
+                <button onClick={() => rotateAndFlip("right")} id="right">
+                  <i className="fa-solid fa-rotate-right"></i>
+                </button>
+                <button
+                  onClick={() => rotateAndFlip("horizontal")}
+                  id="horizontal"
+                >
+                  <i className="bx bx-reflect-vertical"></i>
+                </button>
+                <button onClick={() => rotateAndFlip("vertical")} id="vertical">
+                  <i className="bx bx-reflect-horizontal"></i>
+                </button>
+              </div>
             </div>
           </div>
-          <div class="rotate">
-            <label class="title">Rotate & Flip</label>
-            <div class="options">
-              <button onClick={() => rotateAndFlip("left")} id="left">
-                <i class="fa-solid fa-rotate-left"></i>
-              </button>
-              <button onClick={() => rotateAndFlip("right")} id="right">
-                <i class="fa-solid fa-rotate-right"></i>
-              </button>
-              <button
-                onClick={() => rotateAndFlip("horizontal")}
-                id="horizontal"
-              >
-                <i class="bx bx-reflect-vertical"></i>
-              </button>
-              <button onClick={() => rotateAndFlip("vertical")} id="vertical">
-                <i class="bx bx-reflect-horizontal"></i>
-              </button>
-            </div>
+          <div className="preview-img">
+            <img
+              style={{ transform: transform, filter: filter }}
+              src={image ? image : defaultImage}
+              alt="preview-img"
+            />
           </div>
         </div>
-        <div class="preview-img">
-          <img
-            style={{ transform: transform, filter: filter }}
-            src={defaultImage}
-            alt="preview-img"
-          />
+        <div className="controls">
+          <button onClick={resetFilter} className="reset-filter">
+            Reset Filters
+          </button>
+          <div className="row">
+            <input
+              onChange={loadImage}
+              type="file"
+              ref={myRef}
+              className="file-input"
+              accept="image/*"
+              hidden
+            />
+            <button onClick={inputClick} className="choose-img">
+            Select Image
+            </button>
+            <button onClick={saveImage} className="save-img">
+              Save Image
+            </button>
+          </div>
         </div>
       </div>
-      <div class="controls">
-        <button onClick={resetFilter} class="reset-filter">
-          Reset Filters
-        </button>
-        <div class="row">
-          <input
-            onChange={loadImage}
-            type="file"
-            class="file-input"
-            accept="image/*"
-            hidden
-          />
-          <button onClick={handleChoose} class="choose-img">
-            Choose Image
-          </button>
-          <button onClick={saveImage} class="save-img">
-            Save Image
-          </button>
-        </div>
-      </div>
-    </div>
+    </>
   );
 }
 
